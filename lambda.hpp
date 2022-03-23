@@ -1,3 +1,6 @@
+#ifndef INCLUDED_LAMBDA_HPP
+#define INCLUDED_LAMBDA_HPP
+
 #include <memory>
 #include <set>
 #include <string>
@@ -316,3 +319,5 @@ Expression Application(const Expression &exp1, const Expression &exp2)
 {
     return Expression(exp1, exp2);
 }
+
+#endif
