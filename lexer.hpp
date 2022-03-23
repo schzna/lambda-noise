@@ -1,3 +1,6 @@
+#ifndef INCLUDED_LEXER_HPP
+#define INCLUDED_LEXER_HPP
+
 #include <cctype>
 #include <iostream>
 #include <string>
@@ -59,3 +62,5 @@ std::vector<lex_unit> lexer(std::string_view str)
     }
     return res;
 }
+
+#endif
