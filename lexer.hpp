@@ -39,7 +39,7 @@ std::vector<lex_unit> lexer(std::string_view str)
         }
         if (c == '\\')
         {
-            res.emplace_back("\\", term::paren_end);
+            res.emplace_back("\\", term::abst_begin);
             is_arg = true;
         }
         if (std::isalpha(c))
