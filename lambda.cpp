@@ -6,6 +6,8 @@
 Expression parseandreduce(std::string_view str)
 {
     auto l = reduce(lexer(str));
+    if (debugprint)
+        std::cout << l.str() << "\n";
     auto tmp = l.beta_reduction();
     while (l.str() != tmp.str())
     {
@@ -29,7 +31,23 @@ int main(int argc, char **argv)
         }
         else
         {
-            std::cout << parseandreduce(str).str() << std::endl;
+            size_t line = 1;
+            while (1)
+            {
+                std::cout << "line " << line << ": ";
+                std::getline(ifs, str);
+                if (str.size() > 0 && str.at(0) == '#')
+                {
+                    std::cout << str << "\n";
+                }
+                else
+                {
+                    std::cout << parseandreduce(str).str() << std::endl;
+                }
+                if (ifs.bad() || ifs.eof())
+                    break;
+                line++;
+            }
             return 0;
         }
     }

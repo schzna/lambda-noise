@@ -173,7 +173,11 @@ namespace impl
 
     Expression Variable::beta_impl(const Expression &exp) const
     {
-        return Expression(name);
+        if (debugprint)
+        {
+            std::printf("variable(%s)::beta_impl(%s)\n", name.c_str(), exp.str().c_str());
+        }
+        return Expression(Expression(name), exp);
     }
 
     std::string Variable::str() const
@@ -190,11 +194,16 @@ namespace impl
     {
         if (debugprint)
             std::printf("variable(%s)::substitute(%s, %s)\n", name.c_str(), v.data(), exp.str().c_str());
-        if (name == v)
+
+        auto res = exp;
+
+        if (name != v)
         {
-            return exp;
+            res = Expression(name);
         }
-        return Expression(name);
+        if (debugprint)
+            std::printf("ret %s\n", res.str().c_str());
+        return res;
     }
 
     Expression Variable::beta_reduction() const
@@ -212,12 +221,16 @@ namespace impl
 
     Expression Abstraction::beta_impl(const Expression &exp) const
     {
+        if (debugprint)
+        {
+            std::printf("abstraction(%s, %s)::beta_impl(%s)\n", arg.str().c_str(), this->exp.str().c_str(), exp.str().c_str());
+        }
         return this->exp.substitute(arg.name, exp);
     }
 
     std::string Abstraction::str() const
     {
-        return "λ" + arg.name + "." + exp.str();
+        return "(λ" + arg.name + "." + exp.str() + ")";
     }
 
     std::set<std::string> Abstraction::free_variable() const
@@ -240,7 +253,11 @@ namespace impl
 
     Expression Abstraction::beta_reduction() const
     {
-        return Expression(arg.name, exp);
+        if (debugprint)
+        {
+            std::printf("abstraction(%s, %s)::beta_reduction()\n", arg.str().c_str(), exp.str().c_str());
+        }
+        return Expression(arg.name, exp.beta_reduction());
     }
 
     Application::Application(const Expression &exp1, const Expression &exp2) : Expression(BaseConstructor()), exp1(exp1), exp2(exp2)
@@ -249,12 +266,16 @@ namespace impl
 
     Expression Application::beta_impl(const Expression &exp) const
     {
-        return Expression(exp1, exp2);
+        if (debugprint)
+        {
+            std::printf("application(%s, %s)::beta_impl(%s)\n", exp1.str().c_str(), exp2.str().c_str(), exp.str().c_str());
+        }
+        return Expression(Expression(exp1, exp2), exp);
     }
 
     std::string Application::str() const
     {
-        return "(" + exp1.str() + ")(" + exp2.str() + ")";
+        return "(" + exp1.str() + "" + exp2.str() + ")";
     }
 
     std::set<std::string> Application::free_variable() const
@@ -276,7 +297,11 @@ namespace impl
 
     Expression Application::beta_reduction() const
     {
-        return exp1.beta_impl(exp2);
+        if (debugprint)
+        {
+            std::printf("application(%s, %s)::beta_reduction()\n", exp1.str().c_str(), exp2.str().c_str());
+        }
+        return (exp1.beta_reduction()).beta_impl(exp2.beta_reduction());
     }
 
     class LambdaException : public std::exception
