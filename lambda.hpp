@@ -9,11 +9,10 @@
 
 const bool debugprint = false;
 
-class Expression;
-
 namespace impl
 {
 
+    class Expression;
     class Named
     {
     public:

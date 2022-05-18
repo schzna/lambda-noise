@@ -20,6 +20,9 @@ struct lex_unit
 {
     std::string str;
     term type;
+
+    lex_unit() {}
+    lex_unit(std::string_view str, term type) : str(str), type(type) {}
 };
 
 std::vector<lex_unit> lexer(std::string_view str)

@@ -3,7 +3,7 @@
 #include "lambda.hpp"
 #include "lexer.hpp"
 #include <memory>
-#include <vector>
+#include <stack>
 
 Expression reduce(std::vector<lex_unit> lex_units)
 {
@@ -15,52 +15,51 @@ Expression reduce(std::vector<lex_unit> lex_units)
         abst
     };
 
-    std::vector<token> sig;
-    std::vector<Expression> ent;
+    std::stack<token> sig;
+    std::stack<Expression> ent;
     size_t index = 0;
-    bool reducing = false;
     while (index < lex_units.size())
     {
         auto &lex = lex_units.at(index);
         if (lex.type == term::variable || lex.type == term::arg_variable)
         {
-            ent.emplace_back(lex.str);
+            ent.emplace(lex.str);
         }
         if (lex.type == term::abst_begin)
         {
-            sig.emplace_back(token::abst);
+            sig.push(token::abst);
         }
         if (lex.type == term::paren_begin)
         {
-            sig.emplace_back(token::exp);
+            sig.push(token::exp);
         }
         if (lex.type == term::paren_end || index == (lex_units.size() - 1))
         {
             bool paren = (lex.type == term::paren_end);
-            while (!sig.empty() && (!paren || sig.back() != token::exp))
+            while (!sig.empty() && (!paren || sig.top() != token::exp))
             {
-                if (sig.back() == token::abst)
+                if (sig.top() == token::abst)
                 {
-                    auto arg2 = ent.back();
-                    ent.pop_back();
-                    auto var = ent.back().str();
-                    ent.pop_back();
-                    ent.emplace_back(var, arg2);
+                    auto arg2 = ent.top();
+                    ent.pop();
+                    auto var = ent.top().str();
+                    ent.pop();
+                    ent.emplace(var, arg2);
                 }
-                sig.pop_back();
+                sig.pop();
             }
             if (ent.size() == 2)
             {
-                auto arg2 = ent.back();
-                ent.pop_back();
-                auto arg1 = ent.back();
-                ent.pop_back();
-                ent.emplace_back(arg1, arg2);
+                auto arg2 = ent.top();
+                ent.pop();
+                auto arg1 = ent.top();
+                ent.pop();
+                ent.emplace(arg1, arg2);
             }
         }
         index++;
     }
-    return ent.front();
+    return ent.top();
 }
 
 #endif
