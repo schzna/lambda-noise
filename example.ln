@@ -1,4 +1,4 @@
 #AND TRUE FALSE
-(\p.\q.pqp)(\x.\y.x)(\x.\y.y)
+(\p.\q.p q p)(\x.\y.x)(\x.\y.y)
 #1 + 1
-(\n.\f.\x.f(n f x))(\f.\x.fx)
+(\n.\f.\x.f(n f x))(\f.\x.f x)

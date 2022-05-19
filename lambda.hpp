@@ -310,7 +310,7 @@ namespace impl
 
     std::string Application::str() const
     {
-        return "(" + exp1.str() + "" + exp2.str() + ")";
+        return "(" + exp1.str() + " " + exp2.str() + ")";
     }
 
     std::set<std::string> Application::free_variables() const

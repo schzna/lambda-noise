@@ -13,7 +13,9 @@ enum class term
     paren_begin,
     paren_end,
     variable,
-    arg_variable
+    arg_variable,
+    defeq,
+    id
 };
 
 struct lex_unit
@@ -28,13 +30,47 @@ struct lex_unit
 std::vector<lex_unit> lexer(std::string_view str)
 {
     bool is_arg = false;
+    bool read_id = false;
     std::vector<lex_unit> res = {};
-    std::string tmp = "";
+    std::string arg = "";
+    std::string id = "";
     for (auto &&c : str)
     {
+        if (std::islower(c))
+        {
+            arg = "";
+            arg += c;
+            if (is_arg)
+            {
+                res.emplace_back(arg, term::arg_variable);
+            }
+            else
+            {
+                read_id = true;
+                id += c;
+            }
+        }
+        else if (read_id)
+        {
+            if (id.size() == 1)
+            {
+                res.emplace_back(id, term::variable);
+            }
+            else
+            {
+                res.emplace_back(id, term::id);
+            }
+
+            read_id = false;
+            id = "";
+        }
         if (c == '(')
         {
             res.emplace_back("(", term::paren_begin);
+        }
+        if (c == '=')
+        {
+            res.emplace_back("=", term::defeq);
         }
         if (c == ')')
         {
@@ -44,19 +80,6 @@ std::vector<lex_unit> lexer(std::string_view str)
         {
             res.emplace_back("\\", term::abst_begin);
             is_arg = true;
-        }
-        if (std::isalpha(c))
-        {
-            tmp = "";
-            tmp += c;
-            if (is_arg)
-            {
-                res.emplace_back(tmp, term::arg_variable);
-            }
-            else
-            {
-                res.emplace_back(tmp, term::variable);
-            }
         }
         if (c == '.')
         {
