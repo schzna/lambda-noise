@@ -58,6 +58,8 @@ namespace impl
         Expression(std::string_view x, const Expression &exp);
         Expression(const Expression &exp1, const Expression &exp2);
 
+        virtual ~Expression() {}
+
         virtual std::string str() const;
         virtual std::set<std::string> free_variable() const;
 
@@ -67,6 +69,7 @@ namespace impl
 
     class Variable : public Expression, public Named
     {
+    private:
         friend class Expression;
         friend class Abstraction;
         friend class Application;
@@ -80,10 +83,14 @@ namespace impl
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
+
+    public:
+        virtual ~Variable() {}
     };
 
     class Abstraction : public Expression
     {
+    private:
         friend class Expression;
         friend class Variable;
         friend class Application;
@@ -101,10 +108,14 @@ namespace impl
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
+
+    public:
+        virtual ~Abstraction() {}
     };
 
     class Application : public Expression
     {
+    private:
         friend class Expression;
         friend class Variable;
         friend class Abstraction;
@@ -120,6 +131,9 @@ namespace impl
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
+
+    public:
+        virtual ~Application() {}
     };
 
     Expression::Expression(std::string_view v)
