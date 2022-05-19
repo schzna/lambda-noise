@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     while (1)
     {
         std::cout << "λ>";
-        std::cin >> str;
+        std::getline(std::cin, str);
         std::visit([](const auto &x)
                    { std::cout << x.str() << std::endl; },
                    parseandreduce(str, env));

@@ -24,7 +24,6 @@ If you give no files, REPL starts.
 
 ## Problem
 
-- REPL implementation have many bugs.
 - Name collisions can happen.
 
 ## License
