@@ -1,5 +1,11 @@
+#def true
+true = \x.\y.x
+#def false
+false = \x.\y.y
+#def and
+and = \p.\q.p q p
 #AND TRUE FALSE
-(\p.\q.p q p)(\x.\y.x)(\x.\y.y)
+and true false
 #def 0
 0 = (\f.\x.x)
 #def suc

@@ -70,6 +70,8 @@ std::pair<Definition, Expression> reduce(std::vector<lex_unit> lex_units)
         if (lex.type == term::defeq)
         {
             sig.emplace(tokenkind::defeq, ent.size());
+            lex_units.insert(lex_units.begin() + index + 1, lex_unit("(", term::paren_begin));
+            lex_units.emplace_back(")", term::paren_end);
         }
         if (lex.type == term::arg_variable)
         {
