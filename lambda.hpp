@@ -418,7 +418,7 @@ namespace impl
 
         if (name != v)
         {
-            res = Expression(name);
+            res = Expression(name, true);
         }
         if (debugprint)
             std::printf("ret %s\n", res.str().c_str());

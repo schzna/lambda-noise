@@ -9,9 +9,13 @@ std::variant<Expression, Definition> parseandreduce(std::string_view str, Enviro
     auto res = reduce(lexer(str));
     auto l = res.second;
     bool is_def = (res.first.name != "");
+
     if (debugprint)
     {
-        std::cout << l.str() << "\n";
+        if (is_def)
+            std::cout << res.first.str() << "\n";
+        else
+            std::cout << l.str() << "\n";
         for (auto &&e : l.bound_variables())
         {
             std::cout << e << " ";
@@ -34,8 +38,21 @@ std::variant<Expression, Definition> parseandreduce(std::string_view str, Enviro
 
     if (is_def)
     {
-        env.insert(res.first);
-        return res.first;
+        auto entity = res.first.exp;
+        for (auto &&def : env)
+        {
+            entity = entity.substitute(def.name, def.exp);
+        }
+        auto tmp = entity.beta_reduction();
+        while (entity.str() != tmp.str())
+        {
+            entity = tmp;
+            tmp = tmp.beta_reduction();
+        }
+        entity = tmp;
+        Definition def{res.first.name, entity};
+        env.insert(def);
+        return def;
     }
     return l;
 }

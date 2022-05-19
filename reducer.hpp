@@ -64,7 +64,7 @@ std::pair<Definition, Expression> reduce(std::vector<lex_unit> lex_units)
         }
         if (lex.type == term::id)
         {
-            ent.emplace(lex.str);
+            ent.emplace(lex.str, true);
             sig.emplace(tokenkind::constant, ent.size() - 1);
         }
         if (lex.type == term::defeq)

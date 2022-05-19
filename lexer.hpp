@@ -95,7 +95,7 @@ std::vector<lex_unit> lexer(std::string_view str)
         else
             res.emplace_back(id, term::variable);
     }
-    else
+    else if (id.size() > 0)
     {
         res.emplace_back(id, term::id);
     }
