@@ -173,10 +173,11 @@ Expression reduce(std::vector<lex_unit> lex_units)
 
         index++;
     }
-    while (!ent.empty())
+    while (!ent.empty() && (sig.top().type != tokenkind::arg))
     {
         apps.push(ent.top());
         ent.pop();
+        sig.pop();
     }
     auto exp = apps.top();
     apps.pop();
@@ -185,7 +186,16 @@ Expression reduce(std::vector<lex_unit> lex_units)
         exp = Expression(exp, apps.top());
         apps.pop();
     }
-    ent.push(exp);
+
+    if (!sig.empty() && sig.top().type == tokenkind::arg)
+    {
+        auto arg = ent.top();
+        ent.emplace(arg.str(), exp);
+    }
+    else
+    {
+        ent.push(exp);
+    }
     return ent.top();
 }
 
