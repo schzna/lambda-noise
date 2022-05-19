@@ -15,6 +15,7 @@ Expression reduce(std::vector<lex_unit> lex_units)
         app,
         abst,
         begin,
+        constant
     };
 
     struct token
@@ -30,12 +31,16 @@ Expression reduce(std::vector<lex_unit> lex_units)
     size_t index = 0;
     while (index < lex_units.size())
     {
-
         auto &lex = lex_units.at(index);
         if (lex.type == term::variable)
         {
             ent.emplace(lex.str);
             sig.emplace(tokenkind::var, ent.size() - 1);
+        }
+        if (lex.type == term::id)
+        {
+            ent.emplace(lex.str);
+            sig.emplace(tokenkind::constant, ent.size() - 1);
         }
         if (lex.type == term::arg_variable)
         {
@@ -62,7 +67,7 @@ Expression reduce(std::vector<lex_unit> lex_units)
                     ent.pop();
                     apps.push(exp);
                 }
-                if (sig.top().type == tokenkind::var)
+                if (sig.top().type == tokenkind::var || sig.top().type == tokenkind::constant)
                 {
                     auto exp = ent.top();
                     ent.pop();
@@ -144,6 +149,9 @@ Expression reduce(std::vector<lex_unit> lex_units)
                     break;
                 case tokenkind::begin:
                     std::cout << "begin";
+                    break;
+                case tokenkind::constant:
+                    std::cout << "constant";
                     break;
                 default:
                     break;

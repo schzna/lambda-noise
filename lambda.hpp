@@ -38,12 +38,14 @@ namespace impl
     class Variable;
     class Abstraction;
     class Application;
+    class Constant;
 
     class Expression
     {
         friend class Variable;
         friend class Abstraction;
         friend class Application;
+        friend class Constant;
 
     private:
         std::shared_ptr<Expression> rep;
@@ -54,7 +56,7 @@ namespace impl
         Expression(BaseConstructor);
 
     public:
-        Expression(std::string_view v);
+        Expression(std::string_view v, bool is_constant);
         Expression(std::string_view x, const Expression &exp);
         Expression(const Expression &exp1, const Expression &exp2);
 
@@ -74,6 +76,7 @@ namespace impl
         friend class Expression;
         friend class Abstraction;
         friend class Application;
+        friend class Constant;
 
         Variable(std::string_view v);
 
@@ -96,6 +99,7 @@ namespace impl
         friend class Expression;
         friend class Variable;
         friend class Application;
+        friend class Constant;
 
         Variable arg;
         Expression exp;
@@ -122,6 +126,7 @@ namespace impl
         friend class Expression;
         friend class Variable;
         friend class Abstraction;
+        friend class Constant;
 
         Expression exp1, exp2;
 
@@ -140,9 +145,39 @@ namespace impl
         virtual ~Application() {}
     };
 
-    Expression::Expression(std::string_view v)
+    class Constant : public Expression, public Named
     {
-        rep = std::shared_ptr<Variable>(new Variable(v));
+    private:
+        friend class Expression;
+        friend class Variable;
+        friend class Abstraction;
+        friend class Application;
+
+        Constant(std::string_view name);
+
+        virtual Expression beta_impl(const Expression &exp) const;
+
+        virtual std::string str() const;
+        virtual std::set<std::string> free_variables() const;
+        virtual std::set<std::string> bound_variables() const;
+
+        virtual Expression substitute(std::string_view v, const Expression &exp) const;
+        virtual Expression beta_reduction() const;
+
+    public:
+        virtual ~Constant() {}
+    };
+
+    Expression::Expression(std::string_view v, bool is_constant = false)
+    {
+        if (is_constant)
+        {
+            rep = std::shared_ptr<Constant>(new Constant(v));
+        }
+        else
+        {
+            rep = std::shared_ptr<Variable>(new Variable(v));
+        }
     }
 
     Expression::Expression(std::string_view x, const Expression &exp)
@@ -346,6 +381,55 @@ namespace impl
         return (exp1.beta_reduction()).beta_impl(exp2.beta_reduction());
     }
 
+    Constant::Constant(std::string_view name) : Expression(BaseConstructor()), Named(name)
+    {
+    }
+
+    Expression Constant::beta_impl(const Expression &exp) const
+    {
+        if (debugprint)
+        {
+            std::printf("variable(%s)::beta_impl(%s)\n", name.c_str(), exp.str().c_str());
+        }
+        return Expression(Expression(name), exp);
+    }
+
+    std::string Constant::str() const
+    {
+        return name;
+    }
+
+    std::set<std::string> Constant::free_variables() const
+    {
+        return {};
+    }
+
+    std::set<std::string> Constant::bound_variables() const
+    {
+        return {};
+    }
+
+    Expression Constant::substitute(std::string_view v, const Expression &exp) const
+    {
+        if (debugprint)
+            std::printf("constant(%s)::substitute(%s, %s)\n", name.c_str(), v.data(), exp.str().c_str());
+
+        auto res = exp;
+
+        if (name != v)
+        {
+            res = Expression(name);
+        }
+        if (debugprint)
+            std::printf("ret %s\n", res.str().c_str());
+        return res;
+    }
+
+    Expression Constant::beta_reduction() const
+    {
+        return Expression(name);
+    }
+
     class LambdaException : public std::exception
     {
     public:
@@ -384,6 +468,11 @@ Expression Abstraction(const impl::Variable &x, const Expression &exp)
 Expression Application(const Expression &exp1, const Expression &exp2)
 {
     return Expression(exp1, exp2);
+}
+
+Expression Constant(std::string_view name)
+{
+    return Expression(name, true);
 }
 
 #endif
