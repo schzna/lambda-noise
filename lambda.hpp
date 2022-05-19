@@ -62,6 +62,7 @@ namespace impl
 
         virtual std::string str() const;
         virtual std::set<std::string> free_variables() const;
+        virtual std::set<std::string> bound_variables() const;
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
@@ -80,6 +81,7 @@ namespace impl
 
         virtual std::string str() const;
         virtual std::set<std::string> free_variables() const;
+        virtual std::set<std::string> bound_variables() const;
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
@@ -105,6 +107,7 @@ namespace impl
 
         virtual std::string str() const;
         virtual std::set<std::string> free_variables() const;
+        virtual std::set<std::string> bound_variables() const;
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
@@ -128,6 +131,7 @@ namespace impl
 
         virtual std::string str() const;
         virtual std::set<std::string> free_variables() const;
+        virtual std::set<std::string> bound_variables() const;
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
@@ -171,6 +175,11 @@ namespace impl
         return rep->free_variables();
     }
 
+    std::set<std::string> Expression::bound_variables() const
+    {
+        return rep->bound_variables();
+    }
+
     Expression Expression::substitute(std::string_view v, const Expression &exp) const
     {
         return rep->substitute(v, exp);
@@ -202,6 +211,11 @@ namespace impl
     std::set<std::string> Variable::free_variables() const
     {
         return {name};
+    }
+
+    std::set<std::string> Variable::bound_variables() const
+    {
+        return {};
     }
 
     Expression Variable::substitute(std::string_view v, const Expression &exp) const
@@ -254,6 +268,13 @@ namespace impl
         return res;
     }
 
+    std::set<std::string> Abstraction::bound_variables() const
+    {
+        auto res = exp.bound_variables();
+        res.insert(arg.name);
+        return res;
+    }
+
     Expression Abstraction::substitute(std::string_view v, const Expression &exp) const
     {
         if (debugprint)
@@ -296,6 +317,13 @@ namespace impl
     {
         auto res = exp1.free_variables();
         res.merge(exp2.free_variables());
+        return res;
+    }
+
+    std::set<std::string> Application::bound_variables() const
+    {
+        auto res = exp1.bound_variables();
+        res.merge(exp2.bound_variables());
         return res;
     }
 

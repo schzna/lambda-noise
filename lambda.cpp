@@ -7,7 +7,14 @@ Expression parseandreduce(std::string_view str)
 {
     auto l = reduce(lexer(str));
     if (debugprint)
+    {
         std::cout << l.str() << "\n";
+        for (auto &&e : l.bound_variables())
+        {
+            std::cout << e << " ";
+        }
+        std::cout << std::endl;
+    }
     auto tmp = l.beta_reduction();
     while (l.str() != tmp.str())
     {
