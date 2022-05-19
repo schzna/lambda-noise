@@ -61,7 +61,7 @@ namespace impl
         virtual ~Expression() {}
 
         virtual std::string str() const;
-        virtual std::set<std::string> free_variable() const;
+        virtual std::set<std::string> free_variables() const;
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
@@ -79,7 +79,7 @@ namespace impl
         virtual Expression beta_impl(const Expression &exp) const;
 
         virtual std::string str() const;
-        virtual std::set<std::string> free_variable() const;
+        virtual std::set<std::string> free_variables() const;
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
@@ -104,7 +104,7 @@ namespace impl
         virtual Expression beta_impl(const Expression &exp) const;
 
         virtual std::string str() const;
-        virtual std::set<std::string> free_variable() const;
+        virtual std::set<std::string> free_variables() const;
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
@@ -127,7 +127,7 @@ namespace impl
         virtual Expression beta_impl(const Expression &exp) const;
 
         virtual std::string str() const;
-        virtual std::set<std::string> free_variable() const;
+        virtual std::set<std::string> free_variables() const;
 
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
@@ -166,9 +166,9 @@ namespace impl
         return rep->str();
     }
 
-    std::set<std::string> Expression::free_variable() const
+    std::set<std::string> Expression::free_variables() const
     {
-        return rep->free_variable();
+        return rep->free_variables();
     }
 
     Expression Expression::substitute(std::string_view v, const Expression &exp) const
@@ -199,7 +199,7 @@ namespace impl
         return name;
     }
 
-    std::set<std::string> Variable::free_variable() const
+    std::set<std::string> Variable::free_variables() const
     {
         return {name};
     }
@@ -247,9 +247,9 @@ namespace impl
         return "(λ" + arg.name + "." + exp.str() + ")";
     }
 
-    std::set<std::string> Abstraction::free_variable() const
+    std::set<std::string> Abstraction::free_variables() const
     {
-        auto res = exp.free_variable();
+        auto res = exp.free_variables();
         res.erase(arg.name);
         return res;
     }
@@ -292,10 +292,10 @@ namespace impl
         return "(" + exp1.str() + "" + exp2.str() + ")";
     }
 
-    std::set<std::string> Application::free_variable() const
+    std::set<std::string> Application::free_variables() const
     {
-        auto res = exp1.free_variable();
-        res.merge(exp2.free_variable());
+        auto res = exp1.free_variables();
+        res.merge(exp2.free_variables());
         return res;
     }
 
