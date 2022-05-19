@@ -36,7 +36,7 @@ std::vector<lex_unit> lexer(std::string_view str)
     std::string id = "";
     for (auto &&c : str)
     {
-        if (std::islower(c))
+        if (std::islower(c) || std::isdigit(c))
         {
             arg = "";
             arg += c;
@@ -54,13 +54,15 @@ std::vector<lex_unit> lexer(std::string_view str)
         {
             if (id.size() == 1)
             {
-                res.emplace_back(id, term::variable);
+                if (std::isdigit(id.at(0)))
+                    res.emplace_back(id, term::id);
+                else
+                    res.emplace_back(id, term::variable);
             }
             else
             {
                 res.emplace_back(id, term::id);
             }
-
             read_id = false;
             id = "";
         }
@@ -86,6 +88,19 @@ std::vector<lex_unit> lexer(std::string_view str)
             is_arg = false;
         }
     }
+    if (id.size() == 1)
+    {
+        if (std::isdigit(id.at(0)))
+            res.emplace_back(id, term::id);
+        else
+            res.emplace_back(id, term::variable);
+    }
+    else
+    {
+        res.emplace_back(id, term::id);
+    }
+    read_id = false;
+    id = "";
     return res;
 }
 

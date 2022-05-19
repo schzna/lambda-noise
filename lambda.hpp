@@ -7,7 +7,7 @@
 #include <string_view>
 #include <vector>
 
-const bool debugprint = false;
+const bool debugprint = true;
 
 namespace impl
 {

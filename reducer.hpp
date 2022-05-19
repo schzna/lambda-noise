@@ -4,8 +4,31 @@
 #include "lexer.hpp"
 #include <memory>
 #include <stack>
+#include <string>
+#include <utility>
 
-Expression reduce(std::vector<lex_unit> lex_units)
+struct Definition
+{
+    std::string name;
+    Expression exp;
+
+    Definition() : name(""), exp(Constant("")) {}
+    Definition(std::string_view name, const Expression &exp) : name(name), exp(exp) {}
+
+    std::string str() const
+    {
+        return name + " := " + exp.str();
+    }
+
+    bool operator<(const Definition &d) const
+    {
+        return name < d.name;
+    }
+};
+
+using Environment = std::set<Definition>;
+
+std::pair<Definition, Expression> reduce(std::vector<lex_unit> lex_units)
 {
     enum class tokenkind
     {
@@ -15,7 +38,8 @@ Expression reduce(std::vector<lex_unit> lex_units)
         app,
         abst,
         begin,
-        constant
+        constant,
+        defeq
     };
 
     struct token
@@ -28,6 +52,7 @@ Expression reduce(std::vector<lex_unit> lex_units)
 
     std::stack<token> sig;
     std::stack<Expression> ent, apps;
+    Definition def{"", Constant("none")};
     size_t index = 0;
     while (index < lex_units.size())
     {
@@ -41,6 +66,10 @@ Expression reduce(std::vector<lex_unit> lex_units)
         {
             ent.emplace(lex.str);
             sig.emplace(tokenkind::constant, ent.size() - 1);
+        }
+        if (lex.type == term::defeq)
+        {
+            sig.emplace(tokenkind::defeq, ent.size());
         }
         if (lex.type == term::arg_variable)
         {
@@ -153,6 +182,9 @@ Expression reduce(std::vector<lex_unit> lex_units)
                 case tokenkind::constant:
                     std::cout << "constant";
                     break;
+                case tokenkind::defeq:
+                    std::cout << "defeq";
+                    break;
                 default:
                     break;
                 }
@@ -181,7 +213,7 @@ Expression reduce(std::vector<lex_unit> lex_units)
 
         index++;
     }
-    while (!ent.empty() && (sig.top().type != tokenkind::arg))
+    while (!ent.empty() && (sig.top().type != tokenkind::arg) && (sig.top().type != tokenkind::defeq))
     {
         apps.push(ent.top());
         ent.pop();
@@ -195,16 +227,30 @@ Expression reduce(std::vector<lex_unit> lex_units)
         apps.pop();
     }
 
-    if (!sig.empty() && sig.top().type == tokenkind::arg)
+    if (!sig.empty())
     {
-        auto arg = ent.top();
-        ent.emplace(arg.str(), exp);
+        if (sig.top().type == tokenkind::arg)
+        {
+            auto arg = ent.top();
+            ent.pop();
+            ent.emplace(arg.str(), exp);
+        }
+        if (sig.top().type == tokenkind::defeq)
+        {
+            auto id = ent.top();
+            ent.pop();
+            def = Definition(id.str(), exp);
+        }
     }
     else
     {
         ent.push(exp);
     }
-    return ent.top();
+
+    if (def.name == "")
+        return {def, ent.top()};
+    else
+        return {def, Constant("")};
 }
 
 #endif

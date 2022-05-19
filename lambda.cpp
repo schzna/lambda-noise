@@ -2,10 +2,13 @@
 #include "reducer.hpp"
 #include <fstream>
 #include <iostream>
+#include <variant>
 
-Expression parseandreduce(std::string_view str)
+std::variant<Expression, Definition> parseandreduce(std::string_view str, Environment &env)
 {
-    auto l = reduce(lexer(str));
+    auto res = reduce(lexer(str));
+    auto l = res.second;
+    bool is_def = (res.first.name != "");
     if (debugprint)
     {
         std::cout << l.str() << "\n";
@@ -15,6 +18,12 @@ Expression parseandreduce(std::string_view str)
         }
         std::cout << std::endl;
     }
+
+    for (auto &&def : env)
+    {
+        l = l.substitute(def.name, def.exp);
+    }
+
     auto tmp = l.beta_reduction();
     while (l.str() != tmp.str())
     {
@@ -22,11 +31,18 @@ Expression parseandreduce(std::string_view str)
         tmp = tmp.beta_reduction();
     }
     l = tmp;
+
+    if (is_def)
+    {
+        env.insert(res.first);
+        return res.first;
+    }
     return l;
 }
 
 int main(int argc, char **argv)
 {
+    Environment env = {};
     std::string str = "";
     if (argc == 2)
     {
@@ -49,7 +65,9 @@ int main(int argc, char **argv)
                 }
                 else
                 {
-                    std::cout << parseandreduce(str).str() << std::endl;
+                    std::visit([](const auto &x)
+                               { std::cout << x.str() << std::endl; },
+                               parseandreduce(str, env));
                 }
                 if (ifs.bad() || ifs.eof())
                     break;
@@ -62,7 +80,9 @@ int main(int argc, char **argv)
     {
         std::cout << "λ>";
         std::cin >> str;
-        std::cout << parseandreduce(str).str() << std::endl;
+        std::visit([](const auto &x)
+                   { std::cout << x.str() << std::endl; },
+                   parseandreduce(str, env));
     }
     return 0;
 }

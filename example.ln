@@ -2,3 +2,7 @@
 (\p.\q.p q p)(\x.\y.x)(\x.\y.y)
 #1 + 1
 (\n.\f.\x.f(n f x))(\f.\x.f x)
+#def 0
+0 = (\f.\x.x)
+#0 + 1
+(\n.\f.\x.f(n f x)) 0
