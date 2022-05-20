@@ -12,6 +12,14 @@ const bool debugprint = false;
 namespace impl
 {
 
+    char next_letter(char c)
+    {
+        int i = static_cast<int>(c - 'a');
+        if (i > 26)
+            return c;
+        return static_cast<char>((i + 1) % 26) + 'a';
+    }
+
     class Expression;
     class Named
     {
@@ -66,6 +74,7 @@ namespace impl
         virtual std::set<std::string> free_variables() const;
         virtual std::set<std::string> bound_variables() const;
 
+        virtual Expression avoid(const std::set<std::string> &v) const;
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
     };
@@ -86,6 +95,7 @@ namespace impl
         virtual std::set<std::string> free_variables() const;
         virtual std::set<std::string> bound_variables() const;
 
+        virtual Expression avoid(const std::set<std::string> &v) const;
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
 
@@ -113,6 +123,7 @@ namespace impl
         virtual std::set<std::string> free_variables() const;
         virtual std::set<std::string> bound_variables() const;
 
+        virtual Expression avoid(const std::set<std::string> &v) const;
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
 
@@ -138,6 +149,7 @@ namespace impl
         virtual std::set<std::string> free_variables() const;
         virtual std::set<std::string> bound_variables() const;
 
+        virtual Expression avoid(const std::set<std::string> &v) const;
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
 
@@ -161,6 +173,7 @@ namespace impl
         virtual std::set<std::string> free_variables() const;
         virtual std::set<std::string> bound_variables() const;
 
+        virtual Expression avoid(const std::set<std::string> &v) const;
         virtual Expression substitute(std::string_view v, const Expression &exp) const;
         virtual Expression beta_reduction() const;
 
@@ -215,6 +228,11 @@ namespace impl
         return rep->bound_variables();
     }
 
+    Expression Expression::avoid(const std::set<std::string> &v) const
+    {
+        return rep->avoid(v);
+    }
+
     Expression Expression::substitute(std::string_view v, const Expression &exp) const
     {
         return rep->substitute(v, exp);
@@ -253,6 +271,11 @@ namespace impl
         return {};
     }
 
+    Expression Variable::avoid(const std::set<std::string> &v) const
+    {
+        return Expression(name);
+    }
+
     Expression Variable::substitute(std::string_view v, const Expression &exp) const
     {
         if (debugprint)
@@ -288,7 +311,11 @@ namespace impl
         {
             std::printf("abstraction(%s, %s)::beta_impl(%s)\n", arg.str().c_str(), this->exp.str().c_str(), exp.str().c_str());
         }
-        return this->exp.substitute(arg.name, exp);
+
+        auto vars = exp.free_variables();
+        vars.merge(exp.bound_variables());
+
+        return this->exp.avoid(vars).substitute(arg.name, exp);
     }
 
     std::string Abstraction::str() const
@@ -308,6 +335,23 @@ namespace impl
         auto res = exp.bound_variables();
         res.insert(arg.name);
         return res;
+    }
+
+    Expression Abstraction::avoid(const std::set<std::string> &v) const
+    {
+        if (v.contains(arg.name))
+        {
+            auto used = exp.bound_variables();
+            used.merge(std::set<std::string>(v));
+            char tmp = next_letter(arg.name.at(0));
+            while (used.contains(std::string(&tmp)))
+            {
+                tmp = next_letter(tmp);
+            }
+            std::string newname = {tmp};
+            return Expression(newname, this->exp.substitute(arg.name, Expression(newname)));
+        }
+        return Expression(arg.name, exp);
     }
 
     Expression Abstraction::substitute(std::string_view v, const Expression &exp) const
@@ -362,6 +406,11 @@ namespace impl
         return res;
     }
 
+    Expression Application::avoid(const std::set<std::string> &v) const
+    {
+        return Expression(exp1.avoid(v), exp2.avoid(v));
+    }
+
     Expression Application::substitute(std::string_view v, const Expression &exp) const
     {
         if (debugprint)
@@ -407,6 +456,11 @@ namespace impl
     std::set<std::string> Constant::bound_variables() const
     {
         return {};
+    }
+
+    Expression Constant::avoid(const std::set<std::string> &v) const
+    {
+        return Expression(name, true);
     }
 
     Expression Constant::substitute(std::string_view v, const Expression &exp) const

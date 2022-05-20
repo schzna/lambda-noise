@@ -13,7 +13,7 @@ succ = (\n.\f.\x.f(n f x))
 #def plus
 plus = \m.\n.m succ n
 #def mult
-mult = \m.\n.\f.m (n f)
+mult = \m.\n.m (plus n) 0
 #def pow
 pow = \b.\e.e b
 #def 1 = succ(0)

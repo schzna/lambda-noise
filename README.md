@@ -22,9 +22,9 @@ File content are interpreted line-wise.
 
 If you give no files, REPL starts.
 
-## Problem
+## Problems
 
-- Name collisions can happen.
+Trying to find
 
 ## License
 
